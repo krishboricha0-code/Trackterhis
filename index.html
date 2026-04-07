@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>જય મુરલીધર ટ્રેક્ટર - હિસાબ</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f0f4f8; padding: 10px; direction: ltr; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); max-width: 550px; margin: auto; border-top: 8px solid #e65100; }
+        .header { text-align: center; margin-bottom: 15px; }
+        .header img { width: 100%; max-width: 180px; border-radius: 10px; }
+        h1 { color: #e65100; margin: 5px 0; font-size: 24px; }
+        
+        .section { background: #fff8f0; padding: 15px; border-radius: 10px; border: 1px solid #ffe0b2; margin-bottom: 15px; }
+        label { font-weight: bold; display: block; margin-top: 10px; font-size: 15px; color: #444; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        
+        .row { display: flex; gap: 10px; }
+        .row div { flex: 1; }
+        
+        .add-work-box { display: flex; gap: 5px; margin-top: 5px; }
+        .add-btn { background: #2e7d32; color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .btn-calc { background: #e65100; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; margin-top: 15px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th { background: #e65100; color: white; padding: 10px; font-size: 15px; }
+        td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 15px; }
+        
+        .total-display { text-align: right; margin-top: 15px; font-size: 22px; color: #1b5e20; font-weight: bold; padding: 10px; border-top: 2px solid #eee; }
+        
+        @media print {
+            .no-print { display: none; }
+            .card { box-shadow: none; border: none; max-width: 100%; }
+            .btn-calc { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <img src="https://i.imgur.com/8Q4N7zT.png" alt="Eicher 485">
+        <h1>🚩 જય મુરલીધર ટ્રેક્ટર</h1>
+        <p style="font-weight:bold; color:#555;">જુનાગઢ, ગુજરાત</p>
+    </div>
+
+    <div class="section">
+        <div class="row">
+            <div>
+                <label>ખેડૂતનું નામ:</label>
+                <input type="text" id="kName" placeholder="નામ લખો">
+            </div>
+            <div>
+                <label>મોબાઈલ નંબર:</label>
+                <input type="number" id="kPhone" placeholder="નંબર">
+            </div>
+        </div>
+    </div>
+
+    <div class="section no-print">
+        <label>૧. કામ પસંદ કરો:</label>
+        <select id="workType">
+            <option value="રોટાવેટર">રોટાવેટર</option>
+            <option value="વાવેતર">વાવેતર</option>
+            <option value="હળ (પ્લાઉ)">હળ (પ્લાઉ)</option>
+        </select>
+        
+        <label>નવું કામ ઉમેરો (જો લિસ્ટમાં ના હોય):</label>
+        <div class="add-work-box">
+            <input type="text" id="customWork" placeholder="જેમ કે: સવડુ">
+            <button class="add-btn" onclick="addNewWork()">ઉમેરો</button>
+        </div>
+    </div>
+
+    <div class="section no-print">
+        <div class="row">
+            <div>
+                <label>હિસાબની રીત:</label>
+                <select id="unitType" onchange="updateUI()">
+                    <option value="Hours">કલાક (સમય)</option>
+                    <option value="Vigha">વીઘા (જમીન)</option>
+                </select>
+            </div>
+            <div>
+                <label>ભાવ (Rate ₹):</label>
+                <input type="number" id="rate" value="500">
+            </div>
+        </div>
+
+        <div id="timeBox" class="row" style="margin-top:10px;">
+            <div><small>કલાક</small><input type="number" id="hrs" placeholder="0"></div>
+            <div><small>મિનિટ</small><input type="number" id="mins" placeholder="0"></div>
+        </div>
+        <div id="vighaBox" style="display:none; margin-top:10px;">
+            <label>કેટલા વીઘા:</label>
+            <input type="number" id="vighaQty" placeholder="0.0">
+        </div>
+
+        <button class="btn-calc" onclick="addToBill()">+ બિલમાં ઉમેરો</button>
+    </div>
+
+    <div id="billArea">
+        <h3 style="text-align:center; margin-bottom:5px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">હિસાબની રસીદ</h3>
+        <p id="printKisanInfo" style="margin-bottom:10px; font-size:15px; font-weight:bold;"></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>કામ</th>
+                    <th>માપ</th>
+                    <th>ભાવ</th>
+                    <th>કુલ</th>
+                </tr>
+            </thead>
+            <tbody id="billBody"></tbody>
+        </table>
+        <div class="total-display">કુલ રકમ: ₹<span id="grandTotal">0</span></div>
+    </div>
+
+    <button class="btn-calc no-print" style="background:#2e7d32;" onclick="window.print()">બિલ પ્રિન્ટ / WhatsApp કરો</button>
+</div>
+
+<script>
+    let billItems = [];
+
+    function addNewWork() {
+        let workName = document.getElementById('customWork').value;
+        if (workName) {
+            let sel = document.getElementById('workType');
+            let opt = document.createElement('option');
+            opt.text = workName;
+            opt.value = workName;
+            sel.add(opt);
+            sel.value = workName; 
+            document.getElementById('customWork').value = "";
+            alert(workName + " લિસ્ટમાં ઉમેરાઈ ગયું છે!");
+        }
+    }
+
+    function updateUI() {
+        let type = document.getElementById('unitType').value;
+        document.getElementById('timeBox').style.display = (type === 'Hours') ? 'flex' : 'none';
+        document.getElementById('vighaBox').style.display = (type === 'Vigha') ? 'block' : 'none';
+    }
+
+    function addToBill() {
+        let kName = document.getElementById('kName').value || "ખેડૂત";
+        let kPhone = document.getElementById('kPhone').value || "-";
+        document.getElementById('printKisanInfo').innerText = "ખેડૂત: " + kName + " | મો: " + kPhone;
+
+        let work = document.getElementById('workType').value;
+        let rate = parseFloat(document.getElementById('rate').value) || 0;
+        let unit = document.getElementById('unitType').value;
+        let lineTotal = 0;
+        let qtyText = "";
+
+        if (unit === 'Hours') {
+            let h = parseInt(document.getElementById('hrs').value) || 0;
+            let m = parseInt(document.getElementById('mins').value) || 0;
+            lineTotal = (h + (m / 60)) * rate;
+            qtyText = h + " કલાક " + m + " મિનિટ";
+        } else {
+            let v = parseFloat(document.getElementById('vighaQty').value) || 0;
+            lineTotal = v * rate;
+            qtyText = v + " વીઘા";
+        }
+
+        billItems.push({ work, qtyText, rate, total: Math.round(lineTotal) });
+        renderTable();
+    }
+
+    function renderTable() {
+        let html = "";
+        let gTotal = 0;
+        billItems.forEach(item => {
+            html += `<tr><td>${item.work}</td><td>${item.qtyText}</td><td>${item.rate}</td><td>₹${item.total}</td></tr>`;
+            gTotal += item.total;
+        });
+        document.getElementById('billBody').innerHTML = html;
+        document.getElementById('grandTotal').innerText = gTotal.toLocaleString('en-IN');
+    }
+</script>
+
+</body>
+</html>
